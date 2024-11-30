@@ -26,7 +26,11 @@ if not huggingface_api_key:
 #Conexión con la api (LLM) de Hugging Face ya con la llave cargada:
 client = InferenceClient(api_key=huggingface_api_key)
 
-
+#Configuración general del modelo:
+llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  # Modelo
+                          huggingfacehub_api_token=huggingface_api_key,  # Contraseña
+                          temperature=0.7,  # Precisión
+                          max_length=300)  # Tokens
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -137,12 +141,6 @@ async def generate_recipe(request: GenerateRecipeRequest):
             status_code=400, detail="Debes proporcionar almenos 3 ingredientes.")
 
     try:
-        #Configuración del modelo:
-        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  # Modelo
-                                  huggingfacehub_api_token=huggingface_api_key,  # Contraseña
-                                  temperature=0.7,  # Precisión
-                                  max_length=300)  # Tokens
-        
         #Detallamos el prompt:
         prompt = PromptTemplate(input_variables=["ingredients_list"],
                                 template="""
@@ -177,11 +175,6 @@ async def solve_kitchen_problem(request: KitchenProblemRequest):
     issue = request.issue.lower()  
 
     try:
-        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
-                                  huggingfacehub_api_token=huggingface_api_key, 
-                                  temperature=0.7,  
-                                  max_length=300)  
-
         prompt = PromptTemplate(input_variables=["issue", "ingredient"],
                                 template="""
                                             Eres un chef experimentado que ayuda a resolver problemas de cocina.
@@ -216,14 +209,6 @@ async def convert_measurements(request: ConversionRequest):
     to_unit = request.to_unit.lower()
 
     try:
-
-        llm = HuggingFaceEndpoint(
-            endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
-            huggingfacehub_api_token=huggingface_api_key,
-            temperature=0.7,
-            max_length=300
-        )
-
         prompt = PromptTemplate(input_variables=["quantity", "from_unit", "to_unit"],
                                 template="""
                                             Tienes la cantidad {quantity} {from_unit} y quieres convertirla a {to_unit}.
@@ -259,11 +244,6 @@ async def get_seasonal_foods(request: SeasonalFoodRequest):
     country = request.country.lower()
 
     try:
-        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
-                                  huggingfacehub_api_token=huggingface_api_key,
-                                  temperature=0.7,
-                                  max_length=300)
-
         prompt = PromptTemplate(input_variables=["season", "country"],
                                 template="""
                                             En el país de {country}, ¿cuáles son las comidas típicas para la estación {season}?
@@ -296,11 +276,6 @@ async def get_food_recommendations(request: HealthConditionRequest):
     condition = request.condition.lower()
 
     try:
-        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
-                                  huggingfacehub_api_token=huggingface_api_key,  
-                                  temperature=0.7,
-                                  max_length=300)
-
         prompt = PromptTemplate(input_variables=["condition"],
                                 template="""
                                             Si alguien tiene la condición de salud llamada '{condition}', ¿qué alimentos debe evitar y qué alternativas saludables podría considerar?
