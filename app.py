@@ -10,92 +10,149 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
 
-
-
+import pymysql
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Cargando mi llave personal de la API de HuggingFace:
+load_dotenv(dotenv_path="Material_sensible/contraseña_api.env")
 
-
-# Cargar el archivo .env
-load_dotenv(dotenv_path="contraseña.env")
-
-# Recuperar la clave API
+#Seleccionando la llave:
 huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")
 
-# Verifica que la clave se cargó correctamente (solo para pruebas)
 if not huggingface_api_key:
     raise ValueError("La clave API de Hugging Face no se cargó. Verifica el archivo contraseña.env.")
 
-
-
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#Conexión con la api (LLM) de Hugging Face
-
+#Conexión con la api (LLM) de Hugging Face ya con la llave cargada:
 client = InferenceClient(api_key=huggingface_api_key)
 
 
 
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Conexión con la DataBase de AWS
+#Cargar las variables del archivo .env
+load_dotenv(dotenv_path="Material_sensible/contraseña_database.env")
+
+def connect_to_database():
+    # Recuperar las variables de entorno del archivo .env
+    host = os.getenv("DB_HOST")
+    username = os.getenv("DB_USER")
+    password = os.getenv("DB_PASSWORD")
+    port = int(os.getenv("DB_PORT"))
+    database = os.getenv("DB_NAME")
+
+    try:
+        
+        connection = pymysql.connect(
+            host=host,
+            user=username,
+            password=password,
+            port=port,
+            cursorclass=pymysql.cursors.DictCursor)
+
+        print("Conexión exitosa a la base de datos.")
+
+        connection.close()
+
+    except pymysql.MySQLError as e:
+        print(f"Error al conectarse a la base de datos: {e}")
+
+#Realizar la conexión
+connect_to_database()
+
+#Generando la FastAPI
 app = FastAPI()
 
 
 
 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Creación de la clase de "recetas"
+#Creación de la clase de "problemas culinarios"
+#Creación de las clases de "Conversiones"
+#Creación de las clases de"Temporadas y Países"
+#Creación de la clase de "Condición"
+
+class GenerateRecipeRequest(BaseModel):
+    ingredients: list[str]  #Lista de ingredientes
+
+class KitchenProblemRequest(BaseModel):
+    issue: str  #Tipo de problema (salado, picante, ácido, etc.)
+
+class ConversionRequest(BaseModel):
+    quantity: float  #Cantidad que se desea convertir
+    from_unit: str  #Unidad de origen (por ejemplo, "taza", "cucharada")
+    to_unit: str  #Unidad de destino (por ejemplo, "gramos", "ml")
+
+class SeasonalFoodRequest(BaseModel):
+    season: str  #Estación del año: "primavera", "verano", "otoño", "invierno"
+    country: str  #País: por ejemplo, "México", "España"
+
+class HealthConditionRequest(BaseModel):
+    condition: str  #Condición del usuario (por ejemplo, "celíaco", "intolerancia a la lactosa", "diabetes")
+
+
+
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-# Modelos de entrada
-class GenerateRecipeRequest(BaseModel):
-    ingredients: list[str]  # Lista de 5 ingredientes
-
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # Bienvenida a la página
 @app.get("/")
 async def home():
-    return {
-        "message": """
+    return {"message": """
                     ¡Bienvenidos a Tu Chef Virtual, donde el sabor cobra vida! 🍳✨
-          
-                    Aquí encontrarás recetas personalizadas, consejos culinarios, 
-                    y la inspiración que necesitas para convertir cualquier plato en una obra maestra. 🥗🍝  
-                                
-                    ¡Deja que nuestro chef te guíe paso a paso y transforma tu cocina en el corazón de la creatividad y el buen gusto! 👨‍🍳🔥  
-                                
+                    
+                    ¿Te has quedado sin ideas para cocinar? ¡No te preocupes! Con nuestra API personalizada, puedes:
+
+                    🍴 **Generar recetas**: Introduce una lista de ingredientes y nuestro chef virtual creará una receta deliciosa para ti. ¡Perfecta para esos días en los que no sabes qué cocinar! 
+
+                    🔥 **Resolver problemas de cocina**: ¿Tu comida está demasiado salada, picante o ácida? Dinos el problema y te damos la solución para que no se eche a perder. 🍽️
+
+                    🧑‍🍳 **Conversión de medidas**: ¿No sabes cuántos gramos tiene una taza de harina o cuántos mililitros en una cucharada sopera? ¡Aquí te lo calculamos!
+
+                    🌿 **Comidas según temporada**: Introduce una estación del año y un país, y te sugerimos platos de temporada que puedes preparar con ingredientes frescos.
+
+                    🧑‍⚕️ **Alergias y enfermedades**: Si tienes alguna condición de salud como celiaquía, intolerancia a la lactosa o diabetes, te recomendamos qué alimentos evitar y qué alternativas usar.
+
+                    Con nosotros, tu cocina será más fácil, creativa y saludable. ¡Deja que tu chef virtual te guíe en cada paso!
+
                     ¿Listo para cocinar con estilo? ¡Comencemos juntos! 🍴
                    """
     }
 
 
 
-
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Recetario
 @app.post("/recetas/")
 async def generate_recipe(request: GenerateRecipeRequest):
-    ingredients = request.ingredients
+    ingredients = request.ingredients.lower() # Convertir a minúsculas para consistencia
 
-    if len(ingredients) != 5:
+    if len(ingredients) < 3:
         raise HTTPException(
-            status_code=400, detail="Debes proporcionar exactamente 5 ingredientes."
-        )
+            status_code=400, detail="Debes proporcionar almenos 3 ingredientes.")
 
     try:
-        # Configuración del modelo:
-        llm = HuggingFaceEndpoint(
-            endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  # Modelo
-            huggingfacehub_api_token=huggingface_api_key,  # Contraseña
-            temperature=0.7,  # Precisión
-            max_length=300,  # Tokens
-        )
+        #Configuración del modelo:
+        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  # Modelo
+                                  huggingfacehub_api_token=huggingface_api_key,  # Contraseña
+                                  temperature=0.7,  # Precisión
+                                  max_length=300)  # Tokens
+        
+        #Detallamos el prompt:
+        prompt = PromptTemplate(input_variables=["ingredients_list"],
+                                template="""
+                                            Eres un chef experto en crear recetas clásicas y deliciosas.
+                                            Dada la siguiente lista de ingredientes: {ingredients_list},
+                                            crea un plato típico. Describe brevemente el nombre del plato, 
+                                            los pasos para prepararlo y un consejo especial para mejorar su sabor.
+                                        """)
 
-        # Detallamos el prompt:
-        prompt = PromptTemplate(
-            input_variables=["ingredients_list"],
-            template="""
-                Eres un chef experto en crear recetas innovadoras y deliciosas.
-                Dada la siguiente lista de ingredientes: {ingredients_list},
-                crea un plato único. Describe brevemente el nombre del plato, 
-                los pasos para prepararlo y un consejo especial para mejorar su sabor.
-            """
-        )
-
-        # Generación de la respuesta respecto al prompt:
+        #Generación de la respuesta respecto al prompt:
         formatted_prompt = prompt.format(ingredients_list=", ".join(ingredients))
         respuesta = llm.invoke(formatted_prompt)
 
@@ -111,170 +168,116 @@ async def generate_recipe(request: GenerateRecipeRequest):
 # }
 
 
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-# Modelos de entrada
-class KitchenProblemRequest(BaseModel):
-    issue: str  # Descripción del problema (salado, picante, etc.)
-    ingredient: str = None  # Ingrediente opcional que causa el problema
-
-@app.get("/")
-async def home():
-    return {
-        "message": """
-                    ¡Bienvenidos a Tu Chef Virtual, donde el sabor cobra vida! 🍳✨
-          
-                    Aquí encontrarás recetas personalizadas, consejos culinarios, 
-                    y la inspiración que necesitas para convertir cualquier plato en una obra maestra. 🥗🍝  
-                                
-                    ¡Deja que nuestro chef te guíe paso a paso y transforma tu cocina en el corazón de la creatividad y el buen gusto! 👨‍🍳🔥  
-                                
-                    ¿Listo para cocinar con estilo? ¡Comencemos juntos! 🍴
-                   """
-    }
-
-@app.post("/problemas-cocina/")
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Solucionario
+@app.post("/problemas_cocina/")
 async def solve_kitchen_problem(request: KitchenProblemRequest):
-    issue = request.issue.lower()
-    ingredient = request.ingredient
+    issue = request.issue.lower()  
 
-    # Diccionario con soluciones para problemas comunes
-    solutions = {
-        "salado": "Si tu comida está muy salada, añade papas crudas, arroz o un líquido sin sal como agua o crema para diluir el exceso.",
-        "picante": "Si está muy picante, añade productos lácteos como crema, leche o yogur, o incrementa el volumen del plato con más ingredientes no picantes.",
-        "acido": "Si está demasiado ácido, agrega un poco de azúcar, miel, o incluso un toque de bicarbonato de sodio para neutralizar la acidez.",
-    }
+    try:
+        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
+                                  huggingfacehub_api_token=huggingface_api_key, 
+                                  temperature=0.7,  
+                                  max_length=300)  
 
-    # Respuesta para ingredientes específicos (si se proporciona)
-    if ingredient:
-        response = f"Parece que te pasaste con el ingrediente '{ingredient}'. "
-        if issue in solutions:
-            response += f"{solutions[issue]}"
-        else:
-            response += "Intenta equilibrarlo añadiendo más ingredientes complementarios al plato."
-        return {"solution": response}
+        prompt = PromptTemplate(input_variables=["issue", "ingredient"],
+                                template="""
+                                            Eres un chef experimentado que ayuda a resolver problemas de cocina.
+                                            Si el plato está {issue}, ¿qué se debe hacer para solucionar el problema?
+                                            Dar anímos con el problema.
+                                            Solo en caso de que no haya solución proponer un plato de cocinado rápido.
+                                         """)
 
-    # Respuesta general según el problema
-    if issue in solutions:
-        return {"solution": solutions[issue]}
-    else:
-        raise HTTPException(
-            status_code=400, detail="No reconozco el problema descrito. Intenta especificar si es salado, picante o ácido."
-        )
+        formatted_prompt = prompt.format(issue=issue)
+        respuesta = llm.invoke(formatted_prompt)  
+
+        return {"solution": respuesta}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Ejemplo de uso:
 # {
 #   "issue": "salado",
-#   "ingredient": "sal"
 # }
 
 
 
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-
-app = FastAPI()
-
-# Modelos de entrada
-class ConversionRequest(BaseModel):
-    quantity: float  # Cantidad que se desea convertir
-    from_unit: str  # Unidad de origen (por ejemplo, "taza", "cucharada")
-    to_unit: str  # Unidad de destino (por ejemplo, "gramos", "ml")
-
-@app.get("/")
-async def home():
-    return {
-        "message": """
-                    ¡Bienvenidos a Tu Chef Virtual, donde el sabor cobra vida! 🍳✨
-          
-                    Aquí encontrarás recetas personalizadas, consejos culinarios, 
-                    y la inspiración que necesitas para convertir cualquier plato en una obra maestra. 🥗🍝  
-                                
-                    ¡Deja que nuestro chef te guíe paso a paso y transforma tu cocina en el corazón de la creatividad y el buen gusto! 👨‍🍳🔥  
-                                
-                    ¿Listo para cocinar con estilo? ¡Comencemos juntos! 🍴
-                   """
-    }
-
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Conversionario:
 @app.post("/conversiones/")
 async def convert_measurements(request: ConversionRequest):
     quantity = request.quantity
     from_unit = request.from_unit.lower()
     to_unit = request.to_unit.lower()
 
-    # Tabla de conversiones comunes
-    conversions = {
-        ("taza", "gramos", "harina"): 120,  # 1 taza de harina = 120 gramos
-        ("taza", "gramos", "azúcar"): 200,  # 1 taza de azúcar = 200 gramos
-        ("cucharada", "ml"): 15,  # 1 cucharada = 15 ml
-        ("cucharadita", "ml"): 5,  # 1 cucharadita = 5 ml
-    }
+    try:
 
-    # Conversión personalizada según el contexto (por ejemplo, tipo de ingrediente)
-    if (from_unit, to_unit, "harina") in conversions:
-        result = quantity * conversions[(from_unit, to_unit, "harina")]
-        return {
-            "conversion": f"{quantity} {from_unit} de harina equivale a {result} {to_unit}."
-        }
-    elif (from_unit, to_unit, "azúcar") in conversions:
-        result = quantity * conversions[(from_unit, to_unit, "azúcar")]
-        return {
-            "conversion": f"{quantity} {from_unit} de azúcar equivale a {result} {to_unit}."
-        }
-    elif (from_unit, to_unit) in conversions:
-        result = quantity * conversions[(from_unit, to_unit)]
-        return {
-            "conversion": f"{quantity} {from_unit} equivale a {result} {to_unit}."
-        }
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="No se encontró una conversión válida para las unidades proporcionadas. Verifica las unidades y prueba de nuevo.",
+        llm = HuggingFaceEndpoint(
+            endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
+            huggingfacehub_api_token=huggingface_api_key,
+            temperature=0.7,
+            max_length=300
         )
 
-{
-  "quantity": 1,
-  "from_unit": "taza",
-  "to_unit": "gramos"
-}
+        prompt = PromptTemplate(input_variables=["quantity", "from_unit", "to_unit"],
+                                template="""
+                                            Tienes la cantidad {quantity} {from_unit} y quieres convertirla a {to_unit}.
+                                            Proporcióname la cantidad convertida y una breve explicación de cómo se realiza la conversión.
+                                            Si no es posible hacer la conversión, indica un mensaje de error amigable.
+                                        """)
+
+
+        formatted_prompt = prompt.format(quantity=quantity, from_unit=from_unit, to_unit=to_unit)
+        respuesta = llm.invoke(formatted_prompt)
+
+        return {"conversion": respuesta}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en la conversión: {str(e)}")
+
+# Ejemplo de uso
+# {
+#   "quantity": 1,
+#   "from_unit": "taza",
+#   "to_unit": "gramos"
+# }
+
+
+
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-# Modelo de entrada
-class SeasonalFoodRequest(BaseModel):
-    season: str  # Estación del año: "primavera", "verano", "otoño", "invierno"
-    country: str  # País: por ejemplo, "México", "España"
-
-@app.post("/comidas-por-temporada/")
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Temporadas/Países
+@app.post("/comidas_por_temporada/")
 async def get_seasonal_foods(request: SeasonalFoodRequest):
     season = request.season.lower()
     country = request.country.lower()
 
-    # Diccionario con comidas por temporada y país
-    seasonal_foods = {
-        "mexico": {
-            "primavera": ["Tacos de pescado", "Ensalada de nopales", "Aguachile", "Pozole verde", "Tamalitos de acelga"],
-            "verano": ["Ceviche", "Elotes asados", "Agua fresca de tamarindo", "Sopa fría de aguacate", "Ensalada de mango con chile"],
-            "otoño": ["Pan de muerto", "Calabaza en tacha", "Champurrado", "Tamales de mole", "Pozole rojo"],
-            "invierno": ["Rosca de Reyes", "Ponche navideño", "Atole de guayaba", "Chiles en nogada", "Buñuelos"],
-        },
-        "españa": {
-            "primavera": ["Gazpacho", "Tortilla de espárragos", "Ensalada campera", "Arroz con alcachofas", "Salmorejo"],
-            "verano": ["Paella de mariscos", "Salpicón de marisco", "Helado artesanal", "Ajoblanco", "Pipirrana"],
-            "otoño": ["Castañas asadas", "Cocido madrileño", "Crema de calabaza", "Tarta de almendra", "Setas a la plancha"],
-            "invierno": ["Roscón de Reyes", "Caldo gallego", "Churros con chocolate", "Estofado de cordero", "Pestiños"],
-        },
-    }
+    try:
+        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
+                                  huggingfacehub_api_token=huggingface_api_key,
+                                  temperature=0.7,
+                                  max_length=300)
 
-    # Verifica si el país y la estación están disponibles
-    if country in seasonal_foods and season in seasonal_foods[country]:
-        foods = seasonal_foods[country][season]
-        return {"foods": foods}
-    else:
-        raise HTTPException(
-            status_code=404,
-            detail="No se encontraron datos para la estación o el país proporcionados. Intenta con otro país o estación.",
-        )
+        prompt = PromptTemplate(input_variables=["season", "country"],
+                                template="""
+                                            En el país de {country}, ¿cuáles son las comidas típicas para la estación {season}?
+                                            Dame una lista de platos típicos, explicando brevemente qué los hace característicos de esta temporada.
+                                        """)
+
+        formatted_prompt = prompt.format(season=season, country=country)
+        respuesta = llm.invoke(formatted_prompt)
+
+        return {"foods": respuesta}
+
+    except Exception as e:
+        # Manejo de errores
+        raise HTTPException(status_code=500, detail=f"Error al obtener comidas: {str(e)}")
 
 
 
@@ -285,61 +288,42 @@ async def get_seasonal_foods(request: SeasonalFoodRequest):
 #     "season": "otoño",
 #     "country": "mexico"
 # }
-
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-# Modelo de entrada
-class HealthConditionRequest(BaseModel):
-    condition: str  # Condición del usuario (por ejemplo, "celíaco", "intolerancia a la lactosa", "diabetes")
-
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#Enfermedades
 @app.post("/alergias-enfermedades/")
 async def get_food_recommendations(request: HealthConditionRequest):
     condition = request.condition.lower()
 
-    # Diccionario con alimentos a evitar según la condición
-    health_conditions = {
-        "celíaco": {
-            "avoid": ["Pan y pasteles con gluten", "Pasta de trigo", "Cerveza regular", "Salsas espesadas con harina", "Cereales con gluten"],
-            "info": "Evita alimentos que contengan gluten. Busca productos etiquetados como 'sin gluten'.",
-        },
-        "intolerancia a la lactosa": {
-            "avoid": ["Leche regular", "Queso", "Mantequilla", "Nata", "Yogures no deslactosados"],
-            "info": "Evita productos lácteos o busca opciones deslactosadas y bebidas vegetales como leche de almendra o avena.",
-        },
-        "diabetes": {
-            "avoid": ["Azúcar refinada", "Bebidas azucaradas", "Pan blanco", "Postres industriales", "Caramelos"],
-            "info": "Controla el consumo de carbohidratos simples y azúcares. Prioriza alimentos de bajo índice glucémico.",
-        },
-        "alergia a los frutos secos": {
-            "avoid": ["Nueces", "Almendras", "Avellanas", "Mantequillas de frutos secos", "Postres que contengan frutos secos"],
-            "info": "Evita todos los productos que contengan frutos secos y revisa etiquetas por posibles trazas.",
-        },
-        "hipertensión": {
-            "avoid": ["Comidas muy saladas", "Embutidos", "Alimentos enlatados", "Snacks salados", "Salsas procesadas"],
-            "info": "Reduce el consumo de sodio. Opta por hierbas y especias para sazonar tus comidas.",
-        },
-    }
+    try:
+        llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct",  
+                                  huggingfacehub_api_token=huggingface_api_key,  
+                                  temperature=0.7,
+                                  max_length=300)
 
-    # Busca la condición proporcionada
-    if condition in health_conditions:
-        data = health_conditions[condition]
-        return {
-            "condition": condition.capitalize(),
-            "avoid": data["avoid"],
-            "info": data["info"],
-        }
-    else:
-        raise HTTPException(
-            status_code=404,
-            detail="No se encontró información para la condición especificada. Intenta con otra como 'celíaco', 'diabetes' o 'intolerancia a la lactosa'.",
-        )
+        prompt = PromptTemplate(input_variables=["condition"],
+                                template="""
+                                            Si alguien tiene la condición de salud llamada '{condition}', ¿qué alimentos debe evitar y qué alternativas saludables podría considerar?
+                                            Proporciona una lista de alimentos a evitar y alguna recomendación adicional sobre cómo manejar esta condición con la dieta.
+                                        """)
+
+        formatted_prompt = prompt.format(condition=condition)
+        respuesta = llm.invoke(formatted_prompt)
+
+        return {"recommendations": respuesta}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener recomendaciones: {str(e)}")
 
 
 # ejemplo de uso:
 # {
 #     "condition": "celíaco"
 # }
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # Punto de entrada principal
 if __name__ == "__main__":
