@@ -196,6 +196,7 @@ async def convert_measurements(request: ConversionRequest):
                                             Proporcióname la cantidad convertida y una breve explicación de cómo se realiza la conversión.
                                             Si no es posible hacer la conversión, indica un mensaje de error amigable.
                                             Da la información de manera estructura siendo muy claro.
+                                             Cada paso pon en un renglón diferente y no escribas en formatos markdown.
                                         """)
 
 
@@ -239,6 +240,7 @@ async def get_seasonal_foods(request: SeasonalFoodRequest):
                                             En el país de {country}, ¿cuáles son las comidas típicas para la estación {season}?
                                             Dame una lista de platos típicos, explicando brevemente qué los hace característicos de esta temporada.
                                             Da la información de manera estructura siendo muy claro.
+                                             Cada paso pon en un renglón diferente y no escribas en formatos markdown.
                                         """)
 
         formatted_prompt = prompt.format(season=season, country=country)
@@ -280,6 +282,7 @@ async def get_food_recommendations(request: HealthConditionRequest):
                                             Si alguien tiene la condición de salud llamada '{condition}', ¿qué alimentos debe evitar y qué alternativas saludables podría considerar?
                                             Proporciona una lista de alimentos a evitar y alguna recomendación adicional sobre cómo manejar esta condición con la dieta.
                                             Da la información de manera estructura siendo muy claro.
+                                             Cada paso pon en un renglón diferente y no escribas en formatos markdown.
                                         """)
 
         formatted_prompt = prompt.format(condition=condition)
