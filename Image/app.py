@@ -1,5 +1,5 @@
 # Bibliotecas de Python
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 import uvicorn
 from pydantic import BaseModel
 
@@ -10,12 +10,17 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
 
-import pymysql
+from database_utils import connect_to_database, create_table_if_not_exists, insert_recipe_log, load_env_file, validate_env_variables
+
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 #Cargando mi llave personal de la API de HuggingFace:
-load_dotenv(dotenv_path="Material_sensible/contraseña_api.env")
+load_dotenv(dotenv_path="../Image/Material_sensible/contraseña_api.env")
 
 #Seleccionando la llave:
 huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")
@@ -33,44 +38,24 @@ llm = HuggingFaceEndpoint(endpoint_url="https://api-inference.huggingface.co/mod
                           max_length=300)  # Tokens
 
 
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#Conexión con la DataBase de AWS
-#Cargar las variables del archivo .env
-load_dotenv(dotenv_path="Material_sensible/contraseña_database.env")
 
-def connect_to_database():
-    # Recuperar las variables de entorno del archivo .env
-    host = os.getenv("DB_HOST")
-    username = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-    port = int(os.getenv("DB_PORT"))
-    database = os.getenv("DB_NAME")
+# Cargar archivo de entorno
+load_dotenv(dotenv_path="../Image/Material_sensible/contraseña_database.env")
 
-    try:
-        
-        connection = pymysql.connect(
-            host=host,
-            user=username,
-            password=password,
-            port=port,
-            cursorclass=pymysql.cursors.DictCursor)
+# Verificar variables requeridas
+validate_env_variables(["HUGGINGFACE_API_KEY", "DB_HOST", "DB_USER", "DB_PASSWORD","DB_NAME"])
 
-        print("Conexión exitosa a la base de datos.")
 
-        connection.close()
 
-    except pymysql.MySQLError as e:
-        print(f"Error al conectarse a la base de datos: {e}")
-
-#Realizar la conexión
-connect_to_database()
-
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 #Generando la FastAPI
 app = FastAPI()
 
-
-
+create_table_if_not_exists()
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -98,8 +83,19 @@ class SeasonalFoodRequest(BaseModel):
 class HealthConditionRequest(BaseModel):
     condition: str  #Condición del usuario (por ejemplo, "celíaco", "intolerancia a la lactosa", "diabetes")
 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+# Configuración de las plantillas
+template_directory = "../Image/templates"
+print("Archivos en el directorio:", os.listdir(template_directory))  # Para confirmar que se lee correctamente
 
+templates = Jinja2Templates(directory=template_directory)
+
+# Ruta para la página de inicio
+@app.get("/")
+async def read_home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -107,34 +103,39 @@ class HealthConditionRequest(BaseModel):
 @app.get("/")
 async def home():
     return {"message": """
-                    ¡Bienvenidos a Tu Chef Virtual, donde el sabor cobra vida! 🍳✨
-                    
-                    ¿Te has quedado sin ideas para cocinar? ¡No te preocupes! Con nuestra API personalizada, puedes:
+                        ¡Bienvenidos a Tu Chef Virtual, donde el sabor cobra vida! 🍳✨
+                        
+                        ¿Te has quedado sin ideas para cocinar? ¡No te preocupes! Con nuestra API personalizada, puedes:
 
-                    🍴 **Generar recetas**: Introduce una lista de ingredientes y nuestro chef virtual creará una receta deliciosa para ti. ¡Perfecta para esos días en los que no sabes qué cocinar! 
+                        🍴 **Generar recetas**: Introduce una lista de ingredientes y nuestro chef virtual creará una receta deliciosa para ti. ¡Perfecta para esos días en los que no sabes qué cocinar! 
 
-                    🔥 **Resolver problemas de cocina**: ¿Tu comida está demasiado salada, picante o ácida? Dinos el problema y te damos la solución para que no se eche a perder. 🍽️
+                        🔥 **Resolver problemas de cocina**: ¿Tu comida está demasiado salada, picante o ácida? Dinos el problema y te damos la solución para que no se eche a perder. 🍽️
 
-                    🧑‍🍳 **Conversión de medidas**: ¿No sabes cuántos gramos tiene una taza de harina o cuántos mililitros en una cucharada sopera? ¡Aquí te lo calculamos!
+                        🧑‍🍳 **Conversión de medidas**: ¿No sabes cuántos gramos tiene una taza de harina o cuántos mililitros en una cucharada sopera? ¡Aquí te lo calculamos!
 
-                    🌿 **Comidas según temporada**: Introduce una estación del año y un país, y te sugerimos platos de temporada que puedes preparar con ingredientes frescos.
+                        🌿 **Comidas según temporada**: Introduce una estación del año y un país, y te sugerimos platos de temporada que puedes preparar con ingredientes frescos.
 
-                    🧑‍⚕️ **Alergias y enfermedades**: Si tienes alguna condición de salud como celiaquía, intolerancia a la lactosa o diabetes, te recomendamos qué alimentos evitar y qué alternativas usar.
+                        🧑‍⚕️ **Alergias y enfermedades**: Si tienes alguna condición de salud como celiaquía, intolerancia a la lactosa o diabetes, te recomendamos qué alimentos evitar y qué alternativas usar.
 
-                    Con nosotros, tu cocina será más fácil, creativa y saludable. ¡Deja que tu chef virtual te guíe en cada paso!
+                        Con nosotros, tu cocina será más fácil, creativa y saludable. ¡Deja que tu chef virtual te guíe en cada paso!
 
-                    ¿Listo para cocinar con estilo? ¡Comencemos juntos! 🍴
-                   """
-    }
+                        ¿Listo para cocinar con estilo? ¡Comencemos juntos! 🍴
+                   """}
 
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+@app.get("/recetas/")
+async def get_recetas(request: Request):
+    return templates.TemplateResponse("recetas.html", {"request": request})
+
+
 #Recetario
 @app.post("/recetas/")
 async def generate_recipe(request: GenerateRecipeRequest):
-    ingredients = request.ingredients.lower() # Convertir a minúsculas para consistencia
+    ingredients = [ingredient.lower() for ingredient in request.ingredients] # Convertir a minúsculas para consistencia
 
     if len(ingredients) < 3:
         raise HTTPException(
@@ -154,10 +155,14 @@ async def generate_recipe(request: GenerateRecipeRequest):
         formatted_prompt = prompt.format(ingredients_list=", ".join(ingredients))
         respuesta = llm.invoke(formatted_prompt)
 
+        # Inserción en logs
+        insert_recipe_log(", ".join(ingredients), respuesta, 200)
+
         # Devuelve la respuesta generada
         return {"recipe": respuesta}
 
     except Exception as e:
+        insert_recipe_log(", ".join(ingredients), "", 500, str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 # Ejemplo de uso
@@ -167,40 +172,14 @@ async def generate_recipe(request: GenerateRecipeRequest):
 
 
 
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#Solucionario
-@app.post("/problemas_cocina/")
-async def solve_kitchen_problem(request: KitchenProblemRequest):
-    issue = request.issue.lower()  
-
-    try:
-        prompt = PromptTemplate(input_variables=["issue", "ingredient"],
-                                template="""
-                                            Eres un chef experimentado que ayuda a resolver problemas de cocina.
-                                            Si el plato está {issue}, ¿qué se debe hacer para solucionar el problema?
-                                            Dar anímos con el problema.
-                                            Solo en caso de que no haya solución proponer un plato de cocinado rápido.
-                                         """)
-
-        formatted_prompt = prompt.format(issue=issue)
-        respuesta = llm.invoke(formatted_prompt)  
-
-        return {"solution": respuesta}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Ejemplo de uso:
-# {
-#   "issue": "salado",
-# }
-
-
-
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+@app.get("/conversiones/")
+async def get_conversiones(request: Request):
+    return templates.TemplateResponse("conversiones.html", {"request": request})
+
+
 #Conversionario:
 @app.post("/conversiones/")
 async def convert_measurements(request: ConversionRequest):
@@ -220,9 +199,14 @@ async def convert_measurements(request: ConversionRequest):
         formatted_prompt = prompt.format(quantity=quantity, from_unit=from_unit, to_unit=to_unit)
         respuesta = llm.invoke(formatted_prompt)
 
+        input_data = f"{quantity} {from_unit} to {to_unit}"
+        insert_recipe_log(input_data, respuesta, 200)
+
         return {"conversion": respuesta}
 
     except Exception as e:
+        input_data = f"{quantity} {from_unit} to {to_unit}"
+        insert_recipe_log(input_data, "", 500, str(e))
         raise HTTPException(status_code=500, detail=f"Error en la conversión: {str(e)}")
 
 # Ejemplo de uso
@@ -234,11 +218,14 @@ async def convert_measurements(request: ConversionRequest):
 
 
 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+@app.get("/comidas_temporada/")
+async def get_comidas_temporada(request: Request):
+    return templates.TemplateResponse("comidas_temporada.html", {"request": request})
 
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 #Temporadas/Países
-@app.post("/comidas_por_temporada/")
+@app.post("/comidas_temporada/")
 async def get_seasonal_foods(request: SeasonalFoodRequest):
     season = request.season.lower()
     country = request.country.lower()
@@ -253,31 +240,39 @@ async def get_seasonal_foods(request: SeasonalFoodRequest):
         formatted_prompt = prompt.format(season=season, country=country)
         respuesta = llm.invoke(formatted_prompt)
 
+        input_data = f"{season}, {country}"
+        insert_recipe_log(input_data, respuesta, 200)
+
         return {"foods": respuesta}
 
     except Exception as e:
-        # Manejo de errores
+        input_data = f"{season}, {country}"
+        insert_recipe_log(input_data, "", 500, str(e))
         raise HTTPException(status_code=500, detail=f"Error al obtener comidas: {str(e)}")
-
-
-
-
 
 # ejemplo de uso:
 # {
 #     "season": "otoño",
 #     "country": "mexico"
 # }
+
+
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+@app.get("/alergias_enfermedades/")
+async def get_alergias_enfermedades(request: Request):
+    return templates.TemplateResponse("alergias_enfermedades.html", {"request": request})
+
 #Enfermedades
-@app.post("/alergias-enfermedades/")
+@app.post("/alergias_enfermedades/")
 async def get_food_recommendations(request: HealthConditionRequest):
     condition = request.condition.lower()
 
     try:
         prompt = PromptTemplate(input_variables=["condition"],
                                 template="""
+                                            Eres un cocinero experto en comidas que tienen en cuenta enfermedades
                                             Si alguien tiene la condición de salud llamada '{condition}', ¿qué alimentos debe evitar y qué alternativas saludables podría considerar?
                                             Proporciona una lista de alimentos a evitar y alguna recomendación adicional sobre cómo manejar esta condición con la dieta.
                                         """)
@@ -285,16 +280,19 @@ async def get_food_recommendations(request: HealthConditionRequest):
         formatted_prompt = prompt.format(condition=condition)
         respuesta = llm.invoke(formatted_prompt)
 
+        insert_recipe_log(condition, respuesta, 200)
+
         return {"recommendations": respuesta}
 
     except Exception as e:
+        insert_recipe_log(condition, "", 500, str(e))
         raise HTTPException(status_code=500, detail=f"Error al obtener recomendaciones: {str(e)}")
-
 
 # ejemplo de uso:
 # {
 #     "condition": "celíaco"
 # }
+
 
 
 

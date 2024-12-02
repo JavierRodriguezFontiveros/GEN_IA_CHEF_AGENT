@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversión de Medidas - Salus AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-green-500 to-blue-600 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl max-w-3xl">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Conversión de Medidas</h1>
+        <p class="text-lg text-center text-gray-600 mb-6">Convierte cantidades entre diferentes unidades de medida. ¡Solo ingresa los valores y obtén la conversión!</p>
+
+        <!-- Formulario para ingresar datos -->
+        <form id="conversionForm" action="/conversiones/" method="post">
+            <div class="mb-4">
+                <label for="quantity" class="block text-xl font-semibold text-gray-700">Cantidad:</label>
+                <input type="number" id="quantity" name="quantity" placeholder="Ejemplo: 1" class="w-full p-3 border border-gray-300 rounded-lg mt-2" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="from_unit" class="block text-xl font-semibold text-gray-700">Unidad de Origen:</label>
+                <input type="text" id="from_unit" name="from_unit" placeholder="Ejemplo: taza" class="w-full p-3 border border-gray-300 rounded-lg mt-2" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="to_unit" class="block text-xl font-semibold text-gray-700">Unidad de Destino:</label>
+                <input type="text" id="to_unit" name="to_unit" placeholder="Ejemplo: gramos" class="w-full p-3 border border-gray-300 rounded-lg mt-2" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400">
+                Convertir
+            </button>
+        </form>
+
+        <!-- Sección donde se mostrará la conversión -->
+        <div id="conversionResult" class="mt-8 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800">Resultado de la Conversión:</h2>
+            <div id="conversionContent" class="mt-4 text-gray-700"></div>
+        </div>
+    </div>
+
+    <script>
+        // Escuchar el envío del formulario
+        document.getElementById('conversionForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevenir el envío normal del formulario
+
+            const quantity = document.getElementById('quantity').value;
+            const fromUnit = document.getElementById('from_unit').value.trim().toLowerCase();
+            const toUnit = document.getElementById('to_unit').value.trim().toLowerCase();
+
+            // Validación para asegurarse de que los campos no estén vacíos
+            if (!quantity || !fromUnit || !toUnit) {
+                alert('Por favor, complete todos los campos.');
+                return;
+            }
+
+            // Enviar solicitud POST al servidor
+            try {
+                const response = await fetch('/conversiones/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        quantity: parseFloat(quantity),
+                        from_unit: fromUnit,
+                        to_unit: toUnit
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la conversión de medidas.');
+                }
+
+                const data = await response.json();
+                document.getElementById('conversionContent').innerHTML = data.conversion;
+                document.getElementById('conversionResult').classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
+

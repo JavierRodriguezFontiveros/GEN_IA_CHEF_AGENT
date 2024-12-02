@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Recetas - Salus AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl max-w-3xl">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Generador de Recetas</h1>
+        <p class="text-lg text-center text-gray-600 mb-6">Introduce al menos 3 ingredientes y te generaremos una receta deliciosa.</p>
+        
+        <!-- Formulario para ingresar ingredientes -->
+        <form id="recipeForm" action="/recetas/" method="post">
+            <div class="mb-4">
+                <label for="ingredients" class="block text-xl font-semibold text-gray-700">Ingredientes (separados por comas):</label>
+                <input type="text" id="ingredients" name="ingredients" placeholder="Ejemplo: lechuga, tomate, atún" class="w-full p-3 border border-gray-300 rounded-lg mt-2" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                Generar Receta
+            </button>
+        </form>
+
+        <!-- Sección donde se mostrará la receta generada -->
+        <div id="recipeResult" class="mt-8 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800">Receta Generada:</h2>
+            <div id="recipeContent" class="mt-4 text-gray-700"></div>
+        </div>
+    </div>
+
+    <script>
+        // Escuchar el envío del formulario
+        document.getElementById('recipeForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevenir el envío normal del formulario
+
+            const ingredients = document.getElementById('ingredients').value.split(',').map(ingredient => ingredient.trim());
+            if (ingredients.length < 3) {
+                alert('Debes proporcionar al menos 3 ingredientes.');
+                return;
+            }
+
+            // Enviar solicitud POST al servidor
+            try {
+                const response = await fetch('/recetas/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ingredients })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la generación de la receta.');
+                }
+
+                const data = await response.json();
+                document.getElementById('recipeContent').innerHTML = data.recipe;
+                document.getElementById('recipeResult').classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

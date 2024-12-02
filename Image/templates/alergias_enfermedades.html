@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendaciones de Alimentación - Salud</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-green-400 to-teal-500 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl max-w-3xl">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Recomendaciones de Alimentación para Condiciones de Salud</h1>
+        <p class="text-lg text-center text-gray-600 mb-6">Descubre qué alimentos debes evitar y qué alternativas saludables puedes considerar para tu salud.</p>
+
+        <!-- Formulario para ingresar condición de salud -->
+        <form id="healthConditionForm" action="/alergias_enfermedades/" method="post">
+            <div class="mb-4">
+                <label for="condition" class="block text-xl font-semibold text-gray-700">Condición de Salud:</label>
+                <input type="text" id="condition" name="condition" placeholder="Ejemplo: celíaco" class="w-full p-3 border border-gray-300 rounded-lg mt-2" required>
+            </div>
+
+            <button type="submit" class="w-full bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                Obtener Recomendaciones
+            </button>
+        </form>
+
+        <!-- Sección donde se mostrará la respuesta con recomendaciones -->
+        <div id="recommendationsResult" class="mt-8 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800">Recomendaciones de Alimentación:</h2>
+            <div id="recommendationsContent" class="mt-4 text-gray-700"></div>
+        </div>
+    </div>
+
+    <script>
+        // Escuchar el envío del formulario
+        document.getElementById('healthConditionForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevenir el envío normal del formulario
+
+            const condition = document.getElementById('condition').value.trim().toLowerCase();
+
+            // Validación para asegurarse de que el campo no esté vacío
+            if (!condition) {
+                alert('Por favor, ingrese una condición de salud.');
+                return;
+            }
+
+            // Enviar solicitud POST al servidor
+            try {
+                const response = await fetch('/alergias_enfermedades/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        condition: condition
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener las recomendaciones.');
+                }
+
+                const data = await response.json();
+                document.getElementById('recommendationsContent').innerHTML = data.recommendations;
+                document.getElementById('recommendationsResult').classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

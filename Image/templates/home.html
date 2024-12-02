@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Chef Virtual - API de Cocina</title>
+    <!-- Vincula tu archivo de TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fondo personalizado con un gradiente */
+        body {
+            background: linear-gradient(to right, #34D399, #10B981);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .card:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="w-full h-full flex justify-center items-center">
+        <div class="glass-card p-8 text-center w-full max-w-4xl mx-auto">
+            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-600 mb-8">
+                :chef: ¡Bienvenido a Tu Chef Virtual! :taco:
+            </h1>
+
+            <p class="text-xl text-gray-300 mb-6">
+                ¿No sabes qué cocinar? ¡No te preocupes! Con nuestra API personalizada, puedes hacer de tu cocina una
+                experiencia única:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Generar Recetas -->
+                <a href="/recetas" class="glass-card p-6 text-center hover:bg-gradient-to-r hover:from-green-400 hover:to-blue-500 transition-all transform hover:scale-105">
+                    <h2 class="text-2xl font-semibold mb-4">🍴 Generar Recetas</h2>
+                    <p class="text-gray-300">Introduce tus ingredientes y genera recetas deliciosas y fáciles de preparar.</p>
+                </a>
+
+                <!-- Conversión de Medidas -->
+                <a href="/conversiones" class="glass-card p-6 text-center hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-500 transition-all transform hover:scale-105">
+                    <h2 class="text-2xl font-semibold mb-4">⚖️ Conversiones de Medidas</h2>
+                    <p class="text-gray-300">Convierte medidas de ingredientes (gramos, tazas, cucharadas, etc.) fácilmente.</p>
+                </a>
+
+                <!-- Comidas de Temporada -->
+                <a href="/comidas_temporada" class="glass-card p-6 text-center hover:bg-gradient-to-r hover:from-teal-400 hover:to-green-500 transition-all transform hover:scale-105">
+                    <h2 class="text-2xl font-semibold mb-4">🌿 Comidas de Temporada</h2>
+                    <p class="text-gray-300">Descubre los platos típicos de acuerdo a la estación y el país que elijas.</p>
+                </a>
+
+                <!-- Recomendaciones de Salud -->
+                <a href="/alergias_enfermedades" class="glass-card p-6 text-center hover:bg-gradient-to-r hover:from-pink-400 hover:to-purple-600 transition-all transform hover:scale-105">
+                    <h2 class="text-2xl font-semibold mb-4">🧑‍⚕️ Alergias y Enfermedades</h2>
+                    <p class="text-gray-300">Si tienes una condición de salud, te damos recomendaciones de alimentos a evitar.</p>
+                </a>
+            </div>
+
+            <footer class="mt-12 text-gray-300 text-sm">
+                <p>Tu Chef Virtual API - Hecho con ❤️ por el equipo de desarrollo.</p>
+                <p>Conecta con nosotros para más información.</p>
+            </footer>
+        </div>
+    </div>
+</body>
+
+</html>
