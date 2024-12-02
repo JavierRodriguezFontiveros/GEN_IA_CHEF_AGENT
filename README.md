@@ -38,3 +38,16 @@
    git clone <URL_DEL_REPOSITORIO>
    cd <directorio_del_proyecto>
 
+
+2. **Usando Docker**
+
+Si prefieres una instalación más rápida y sin configuración manual, puedes usar la imagen disponible en Docker Hub.
+
+1. **Descargar la imagen**
+
+   Ejecuta el siguiente comando para descargar la imagen desde Docker Hub:
+
+   ```bash
+   docker pull javierro97/chef_agent:V4
+
+   docker run --env-file .env -p 8000:8000 -t javierro97/chef_agent:V4

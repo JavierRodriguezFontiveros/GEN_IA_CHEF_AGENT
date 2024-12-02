@@ -149,6 +149,8 @@ async def generate_recipe(request: GenerateRecipeRequest):
                                             Dada la siguiente lista de ingredientes: {ingredients_list},
                                             crea un plato típico. Describe brevemente el nombre del plato, 
                                             los pasos para prepararlo y un consejo especial para mejorar su sabor.
+                                            Da la información de manera estructura siendo muy claro.
+                                            Cada paso pon en un renglón diferente y no escribas en formatos markdown.
                                         """)
 
         #Generación de la respuesta respecto al prompt:
@@ -193,6 +195,7 @@ async def convert_measurements(request: ConversionRequest):
                                             Tienes la cantidad {quantity} {from_unit} y quieres convertirla a {to_unit}.
                                             Proporcióname la cantidad convertida y una breve explicación de cómo se realiza la conversión.
                                             Si no es posible hacer la conversión, indica un mensaje de error amigable.
+                                            Da la información de manera estructura siendo muy claro.
                                         """)
 
 
@@ -235,6 +238,7 @@ async def get_seasonal_foods(request: SeasonalFoodRequest):
                                 template="""
                                             En el país de {country}, ¿cuáles son las comidas típicas para la estación {season}?
                                             Dame una lista de platos típicos, explicando brevemente qué los hace característicos de esta temporada.
+                                            Da la información de manera estructura siendo muy claro.
                                         """)
 
         formatted_prompt = prompt.format(season=season, country=country)
@@ -275,6 +279,7 @@ async def get_food_recommendations(request: HealthConditionRequest):
                                             Eres un cocinero experto en comidas que tienen en cuenta enfermedades
                                             Si alguien tiene la condición de salud llamada '{condition}', ¿qué alimentos debe evitar y qué alternativas saludables podría considerar?
                                             Proporciona una lista de alimentos a evitar y alguna recomendación adicional sobre cómo manejar esta condición con la dieta.
+                                            Da la información de manera estructura siendo muy claro.
                                         """)
 
         formatted_prompt = prompt.format(condition=condition)
