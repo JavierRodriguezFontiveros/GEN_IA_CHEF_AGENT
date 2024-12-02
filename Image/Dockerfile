@@ -1,5 +1,5 @@
 # Etapa 1: Imagen base de Python
-FROM python:3.9-slim
+FROM python:3.12.7-slim
 
 # Etapa 2: Configuración del directorio de trabajo
 WORKDIR /app
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 # Instalar las dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copiar el resto del código de la aplicación
 COPY . /app/
@@ -18,4 +18,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Etapa 5: Definir el comando para ejecutar la aplicación
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0"]

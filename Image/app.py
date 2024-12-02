@@ -12,9 +12,9 @@ import os
 
 from database_utils import connect_to_database, create_table_if_not_exists, insert_recipe_log, load_env_file, validate_env_variables
 
-from fastapi.responses import HTMLResponse
+
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
