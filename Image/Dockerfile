@@ -1,20 +1,21 @@
-# Utilizar una imagen de Python
-FROM python:3.11-slim
+# Etapa 1: Imagen base de Python
+FROM python:3.9-slim
 
-# Establecer el directorio del contendor
+# Etapa 2: Configuración del directorio de trabajo
 WORKDIR /app
-# Copiar el archivo requirements.txt primero (para aprovechar la caché de Docker)
 
-COPY requirements.txt /app
-# Instalar las dependencias desde requirements.txt
+# Etapa 3: Copiar los archivos necesarios
+# Copiar el archivo requirements.txt primero para aprovechar la caché de Docker
+COPY requirements.txt /app/
 
+# Instalar las dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
-# Copiamos los archivos al directorio del contenedor
 
-COPY . /app
-# Exponer el puerto en el que la aplicación está corriendo en el contenedor
+# Copiar el resto del código de la aplicación
+COPY . /app/
 
+# Etapa 4: Exponer el puerto que usará FastAPI
 EXPOSE 8000
-# Comando para ejecutar la aplicación
-# CMD ["python", "app_model.py"]
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+
+# Etapa 5: Definir el comando para ejecutar la aplicación
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
