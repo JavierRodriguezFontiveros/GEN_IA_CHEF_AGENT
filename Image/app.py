@@ -150,7 +150,7 @@ async def generate_recipe(request: GenerateRecipeRequest):
                                             crea un plato típico. Describe brevemente el nombre del plato, 
                                             los pasos para prepararlo y un consejo especial para mejorar su sabor.
                                             Da la información de manera estructura siendo muy claro.
-                                            Cada paso pon en un renglón diferente y no escribas en formatos markdown.
+                                            No escribas en formatos markdown.
                                         """)
 
         #Generación de la respuesta respecto al prompt:
