@@ -87,8 +87,8 @@ class HealthConditionRequest(BaseModel):
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 # Configuración de las plantillas
-template_directory = "../Image/templates"
-print("Archivos en el directorio:", os.listdir(template_directory))  # Para confirmar que se lee correctamente
+template_directory = "./templates"
+print("Archivos en el directorio:", template_directory)  # Para confirmar que se lee correctamente
 
 templates = Jinja2Templates(directory=template_directory)
 

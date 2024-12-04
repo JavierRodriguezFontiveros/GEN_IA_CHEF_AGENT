@@ -2,6 +2,9 @@
 
 ¡Bienvenidos a **Chef Virtual**, una API innovadora que te ayudará a resolver problemas culinarios, generar recetas deliciosas, convertir medidas, sugerir comidas según la temporada, y más! 🌟🍽️
 
+![Texto alternativo](Frontend.png)
+
+
 ## Descripción
 
 **Chef Virtual** es una API desarrollada con **FastAPI** que permite a los usuarios interactuar con diversas funcionalidades relacionadas con la cocina a través de consultas sencillas. Usa tecnología de procesamiento de lenguaje natural de modelos avanzados de Hugging Face para ofrecer recomendaciones, generar recetas y ayudar en la conversión de unidades. 
@@ -13,6 +16,8 @@
 3. **Conversión de medidas**: La API puede convertir unidades de medida comunes (como tazas a gramos).
 4. **Recomendaciones de comidas de temporada**: Sugerencias de platos típicos según la estación del año y el país elegido.
 5. **Recomendaciones según condiciones de salud**: Basado en condiciones de salud comunes (como celiaquía, diabetes, etc.), la API sugiere alimentos recomendados y aquellos a evitar.
+
+![Texto alternativo](Frontend_2.png)
 
 ## Tecnologías utilizadas
 
