@@ -2,7 +2,7 @@
 
 ¡Bienvenidos a **Chef Virtual**, una API innovadora que te ayudará a resolver problemas culinarios, generar recetas deliciosas, convertir medidas, sugerir comidas según la temporada, y más! 🌟🍽️
 
-![Texto alternativo](Frontend.png)
+![Texto alternativo](Extra/Frontend.png)
 
 
 ## Descripción
@@ -17,7 +17,7 @@
 4. **Recomendaciones de comidas de temporada**: Sugerencias de platos típicos según la estación del año y el país elegido.
 5. **Recomendaciones según condiciones de salud**: Basado en condiciones de salud comunes (como celiaquía, diabetes, etc.), la API sugiere alimentos recomendados y aquellos a evitar.
 
-![Texto alternativo](Frontend_2.png)
+![Texto alternativo](Extra/Frontend_2.png)
 
 ## Tecnologías utilizadas
 
@@ -46,6 +46,8 @@
 
 2. **Usando Docker**
 
+![Texto alternativo](Extra/docker.png)
+
 Si prefieres una instalación más rápida y sin configuración manual, puedes usar la imagen disponible en Docker Hub.
 
 1. **Descargar la imagen**
@@ -56,3 +58,4 @@ Si prefieres una instalación más rápida y sin configuración manual, puedes u
    docker pull javierro97/chef_agent:V4
 
    docker run --env-file .env -p 8000:8000 -t javierro97/chef_agent:V4
+
